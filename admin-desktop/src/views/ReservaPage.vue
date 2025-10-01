@@ -13,9 +13,6 @@
       <div class="col-md-3">
         <input v-model="filtros.fecha" type="date" class="form-control" />
       </div>
-      <div class="col-md-3">
-        <input v-model="filtros.ocasion" class="form-control" placeholder="Ocasión" />
-      </div>
       <div class="col-12">
         <button class="btn btn-success" @click="cargarReservas">Filtrar</button>
       </div>
@@ -26,41 +23,75 @@
       <thead class="table-dark">
         <tr>
           <th>Cliente</th>
+          <th>Teléfono</th>
           <th>Restaurante</th>
           <th>Fecha</th>
           <th>Hora</th>
-          <th>Ocasión</th>
           <th>Estado</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="reserva in reservas" :key="reserva.id" @click="abrirModal(reserva)" style="cursor: pointer;">
-          <td>{{ reserva.nombre_cliente }}</td>
+        <tr v-for="reserva in reservas" :key="reserva.id">
+          <td>{{ reserva.nombre }}</td>
+          <td>{{ reserva.telefono }}</td>
           <td>{{ reserva.restaurante_nombre }}</td>
           <td>{{ reserva.fecha }}</td>
           <td>{{ reserva.hora }}</td>
-          <td>{{ reserva.ocasión }}</td>
           <td>{{ reserva.estado_pago }}</td>
+          <td>
+            <button class="btn btn-info btn-sm me-1" @click="verDetalle(reserva)">Ver</button>
+            <button class="btn btn-warning btn-sm me-1" @click="abrirModal(reserva)">Editar</button>
+            <button class="btn btn-danger btn-sm" @click="cancelarReserva(reserva.id)">Borrar</button>
+          </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- MODAL DETALLE -->
-    <div class="modal fade show" v-if="modalAbierto" style="display:block; background:rgba(0,0,0,0.5)">
+    <!-- MODAL DETALLE (solo lectura) -->
+    <div class="modal fade show" v-if="modalDetalle" style="display:block; background:rgba(0,0,0,0.5)">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Detalle Reserva</h5>
-            <button type="button" class="btn-close" @click="modalAbierto=false"></button>
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title">Detalle de Reserva</h5>
+            <button type="button" class="btn-close" @click="modalDetalle=false"></button>
+          </div>
+          <div class="modal-body">
+            <p><b>Cliente:</b> {{ reservaSeleccionada.nombre }}</p>
+            <p><b>Teléfono:</b> {{ reservaSeleccionada.telefono }}</p>
+            <p><b>Restaurante:</b> {{ reservaSeleccionada.restaurante_nombre }}</p>
+            <p><b>Fecha:</b> {{ reservaSeleccionada.fecha }}</p>
+            <p><b>Hora:</b> {{ reservaSeleccionada.hora }}</p>
+            <p><b>Estado:</b> {{ reservaSeleccionada.estado_pago }}</p>
+            <p><b>Creada:</b> {{ reservaSeleccionada.created_at }}</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="modalDetalle=false">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL EDITAR -->
+    <div class="modal fade show" v-if="modalEditar" style="display:block; background:rgba(0,0,0,0.5)">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-warning">
+            <h5 class="modal-title">Editar Reserva</h5>
+            <button type="button" class="btn-close" @click="modalEditar=false"></button>
           </div>
           <div class="modal-body">
             <div class="mb-2">
               <label class="form-label">Cliente</label>
-              <input v-model="reservaSeleccionada.nombre_cliente" class="form-control" />
+              <input v-model="reservaSeleccionada.nombre" class="form-control" />
             </div>
             <div class="mb-2">
-              <label class="form-label">Ocasión</label>
-              <input v-model="reservaSeleccionada.ocasión" class="form-control" />
+              <label class="form-label">Teléfono</label>
+              <input v-model="reservaSeleccionada.telefono" class="form-control" />
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Restaurante</label>
+              <input v-model="reservaSeleccionada.restaurante_nombre" class="form-control" />
             </div>
             <div class="mb-2">
               <label class="form-label">Fecha</label>
@@ -73,12 +104,12 @@
           </div>
           <div class="modal-footer">
             <button class="btn btn-primary" @click="guardarCambios">Guardar</button>
-            <button class="btn btn-danger" @click="cancelarReserva">Cancelar Reserva</button>
-            <button class="btn btn-secondary" @click="modalAbierto=false">Cerrar</button>
+            <button class="btn btn-secondary" @click="modalEditar=false">Cerrar</button>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -86,8 +117,9 @@
 import { ref } from "vue";
 
 const reservas = ref([]);
-const filtros = ref({ nombre: "", restaurante: "", fecha: "", ocasion: "" });
-const modalAbierto = ref(false);
+const filtros = ref({ nombre: "", restaurante: "", fecha: "" });
+const modalDetalle = ref(false);
+const modalEditar = ref(false);
 const reservaSeleccionada = ref({});
 
 async function cargarReservas() {
@@ -95,33 +127,47 @@ async function cargarReservas() {
   if (filtros.value.nombre) params.nombre = filtros.value.nombre;
   if (filtros.value.restaurante) params.restaurante = filtros.value.restaurante;
   if (filtros.value.fecha) params.fecha = filtros.value.fecha;
-  if (filtros.value.ocasion) params.ocasion = filtros.value.ocasion;
 
   const res = await window.api.getReservas(params);
   if (res.success) reservas.value = res.reservas;
   else alert(res.message);
 }
 
+function verDetalle(reserva) {
+  reservaSeleccionada.value = { ...reserva };
+  modalDetalle.value = true;
+}
+
 function abrirModal(reserva) {
   reservaSeleccionada.value = { ...reserva };
-  modalAbierto.value = true;
+  modalEditar.value = true;
 }
 
 async function guardarCambios() {
-  const res = await window.api.updateReserva(reservaSeleccionada.value.id, reservaSeleccionada.value);
+  const datosActualizados = {
+    nombre: reservaSeleccionada.value.nombre,
+    telefono: reservaSeleccionada.value.telefono,
+    restaurante_nombre: reservaSeleccionada.value.restaurante_nombre,
+    fecha: reservaSeleccionada.value.fecha,
+    hora: reservaSeleccionada.value.hora
+  };
+
+  const res = await window.api.updateReserva(reservaSeleccionada.value.id, datosActualizados);
+  
   if (res.success) {
     alert("Reserva actualizada");
-    modalAbierto.value = false;
+    modalEditar.value = false;
     cargarReservas();
-  } else alert(res.message);
+  } else {
+    alert(res.message);
+  }
 }
 
-async function cancelarReserva() {
+async function cancelarReserva(id) {
   if (!confirm("¿Seguro que deseas eliminar la reserva?")) return;
-  const res = await window.api.deleteReserva(reservaSeleccionada.value.id);
+  const res = await window.api.deleteReserva(id);
   if (res.success) {
     alert("Reserva eliminada");
-    modalAbierto.value = false;
     cargarReservas();
   } else alert(res.message);
 }

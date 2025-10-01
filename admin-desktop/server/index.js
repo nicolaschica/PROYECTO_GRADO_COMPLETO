@@ -32,7 +32,7 @@ function verificarToken(req, res, next) {
 }
 
 // --------------------
-// LOGIN ADMIN (SIN BCRYPT)
+// LOGIN ADMIN
 // --------------------
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
@@ -91,13 +91,13 @@ app.post("/login", (req, res) => {
 });
 
 // --------------------
-// RESERVAS CRUD + FILTROS
+// RESERVAS 
 // --------------------
 app.get("/reservas", verificarToken, (req, res) => {
-  const { nombre, restaurante, fecha, ocasion } = req.query;
+  const { nombre, restaurante, fecha } = req.query;
 
   let sql = `
-    SELECT r.id, r.nombre_cliente, r.ocasión, r.restaurante_nombre, r.fecha, r.hora,
+    SELECT r.id, r.nombre, r.telefono, r.restaurante_nombre, r.fecha, r.hora, r.user_id, r.created_at,
            COALESCE(p.estado, 'pendiente') AS estado_pago
     FROM reservas r
     LEFT JOIN pagos p ON r.id = p.reserva_id
@@ -106,7 +106,7 @@ app.get("/reservas", verificarToken, (req, res) => {
   let params = [];
 
   if (nombre) {
-    sql += " AND r.nombre_cliente LIKE ?";
+    sql += " AND r.nombre LIKE ?";
     params.push(`%${nombre}%`);
   }
   if (restaurante) {
@@ -117,28 +117,44 @@ app.get("/reservas", verificarToken, (req, res) => {
     sql += " AND r.fecha = ?";
     params.push(fecha);
   }
-  if (ocasion) {
-    sql += " AND r.ocasión LIKE ?";
-    params.push(`%${ocasion}%`);
-  }
 
   db.query(sql, params, (err, results) => {
-    if (err) return res.status(500).json({ success: false, message: "Error al obtener reservas" });
+    if (err) {
+      console.error("Error SQL:", err);
+      return res.status(500).json({ success: false, message: "Error al obtener reservas" });
+    }
     res.json({ success: true, reservas: results });
   });
 });
 
+//EDITAR RESERVA
 app.put("/reserva/:id", verificarToken, (req, res) => {
-  const { nombre_cliente, ocasion, fecha, hora } = req.body;
+  const { nombre, telefono, restaurante_nombre, fecha, hora } = req.body;
+
+  const sql = `
+    UPDATE reservas 
+    SET nombre=?, telefono=?, restaurante_nombre=?, fecha=?, hora=? 
+    WHERE id=?
+  `;
+
   db.query(
-    "UPDATE reservas SET nombre_cliente=?, ocasión=?, fecha=?, hora=? WHERE id=?",
-    [nombre_cliente, ocasion, fecha, hora, req.params.id],
-    (err) => {
-      if (err) return res.status(500).json({ success: false, message: "Error al actualizar reserva" });
-      res.json({ success: true, message: "Reserva actualizada" });
+    sql,
+    [nombre, telefono, restaurante_nombre, fecha, hora, req.params.id],
+    (err, result) => {
+      if (err) {
+        console.error("Error SQL:", err);
+        return res.status(500).json({ success: false, message: "Error al actualizar reserva" });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: "Reserva no encontrada" });
+      }
+      res.json({ success: true, message: "Reserva actualizada correctamente" });
     }
   );
 });
+
+
+
 
 app.delete("/reserva/:id", verificarToken, (req, res) => {
   db.query("DELETE FROM reservas WHERE id=?", [req.params.id], (err) => {
