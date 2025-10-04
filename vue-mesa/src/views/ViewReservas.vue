@@ -1,7 +1,76 @@
+<template>
+  <div class="reservas-wrapper min-vh-100 d-flex flex-column">
+    <!-- Navbar (igual que Home) -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-primary fs-4" href="#">
+          <i class="bi bi-geo-alt-fill me-2"></i>Tu Mesa a un solo click
+        </a>
+
+        <button 
+          class="navbar-toggler border-0" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#navbarNav"
+        >
+          <i class="bi bi-list fs-3 text-primary"></i>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+          <ul class="navbar-nav align-items-center gap-2">
+            <li class="nav-item">
+              <button class="btn btn-primary btn-sm rounded-pill" @click="irHome">
+                <i class="bi bi-house-door me-1"></i> Home
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow-1 bg-light-custom py-5 mt-5">
+      <div class="container">
+        <h2 class="text-center mb-4">📅 Mis Reservas</h2>
+
+        <div v-if="reservas.length > 0" class="reservas-list">
+          <div v-for="r in reservas" :key="r.id" class="reserva-item shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h3>{{ r.restaurante_nombre }}</h3>
+              <span :class="['estado-badge', r.estado_pago]">{{ r.estado_pago || 'Pendiente' }}</span>
+            </div>
+            <p><strong>Fecha:</strong> {{ r.fecha ? new Date(r.fecha).toLocaleDateString() : "N/A" }}</p>
+            <p><strong>Hora:</strong> {{ r.hora ? r.hora.substring(0,5) : "N/A" }}</p>
+            <button v-if="r.estado_pago !== 'approved'" @click="agregarPago(r)" class="btn pago-btn mt-2">
+              💳 Pagar ahora
+            </button>
+          </div>
+        </div>
+
+        <p v-else class="text-center text-muted mt-4">No tienes reservas aún.</p>
+      </div>
+    </main>
+
+    <!-- Footer (igual que Home) -->
+    <footer class="footer bg-dark text-light pt-5 pb-4 mt-auto">
+      <div class="container text-center text-md-start">
+        <div class="text-center small">
+          © 2025 Tu Mesa | Desarrollado por 
+          <strong>Nicolas Chica</strong>, 
+          <strong>Juan Bastidas</strong> y 
+          <strong>Juan Cubides</strong>
+        </div>
+      </div>
+    </footer>
+  </div>
+</template>
+
 <script setup>
 import { ref, onMounted } from "vue"
 import axios from "axios"
+import { useRouter } from "vue-router"
 
+const router = useRouter()
 const reservas = ref([])
 
 const agregarPago = async (reserva) => {
@@ -12,260 +81,80 @@ const agregarPago = async (reserva) => {
       { reservaId: reserva.id },
       { headers: { Authorization: `Bearer ${token}` } }
     )
-
-    if (res.data.success) {
-      window.location.href = res.data.init_point // Redirige a Mercado Pago
-    }
-  } catch (err) {
-    console.error("Error iniciando pago:", err)
-  }
+    if (res.data.success) window.location.href = res.data.init_point
+  } catch (err) { console.error(err) }
 }
+
+
+const irHome = () => router.push("/home")
 
 onMounted(async () => {
   const token = localStorage.getItem("token")
-  if (token) {
-    try {
-      const res = await axios.get("http://localhost:3000/misreservas", {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      reservas.value = res.data.reservas
-    } catch (err) {
-      console.error("Error cargando reservas", err)
-    }
-  }
+  if (!token) return router.push("/login")
+  try {
+    const res = await axios.get("http://localhost:3000/misreservas", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    reservas.value = res.data.reservas
+  } catch (err) { console.error(err) }
 })
 </script>
 
-
-<template>
-  <div class="container">
-    <div class="card">
-      <h2>📅 Mis Reservas</h2>
-
-      <div v-if="reservas.length > 0" class="reservas-list">
-        <div v-for="r in reservas" :key="r.id" class="reserva-item">
-          <h3>{{ r.restaurante_nombre }}</h3>
-          <p><strong>Fecha:</strong> {{ r.fecha ? new Date(r.fecha).toLocaleDateString() : "N/A" }}</p>
-          <p><strong>Hora:</strong> {{ r.hora ? r.hora.substring(0,5) : "N/A" }}</p>
-
-          <!-- Botón de pago -->
-          <button @click="agregarPago(r)" class="pago-btn">
-            💳 Agregar Pago
-          </button>
-
-          <!-- Estado del pago -->
-          <p v-if="r.estado_pago" :class="['estado', r.estado_pago]">
-            Estado del pago: {{ r.estado_pago }}
-          </p>
-        </div>
-      </div>
-
-      <p v-else class="no-reservas">No tienes reservas aún.</p>
-    </div>
-  </div>
-</template>
-
-
 <style scoped>
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  padding: 40px 20px;
-  font-family: sans-serif;
-}
-
-.card {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  padding: 30px;
-  width: 100%;
-  max-width: 700px;
-  animation: fadeIn 0.6s ease-in-out;
-}
-
-.card h2 {
-  font-size: 28px;
-  font-weight: bold;
-  color: #333;
-  text-align: center;
-  margin-bottom: 25px;
-}
+.bg-light-custom { background-color: #f8f9fa; }
 
 .reservas-list {
-  display: grid;
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .reserva-item {
-  padding: 15px 20px;
-  border-radius: 12px;
-  background: #f9fafb;
-  border-left: 6px solid #3b82f6;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: white;
+  border-radius: 1rem;
+  padding: 20px;
+  border-left: 6px solid #228B22;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
 .reserva-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
 
 .reserva-item h3 {
-  margin: 0 0 5px;
-  font-size: 20px;
+  margin: 0;
   color: #228B22;
+  font-size: 1.25rem;
 }
 
-.reserva-item p {
-  margin: 2px 0;
-  color: #444;
+.estado-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: bold;
+  text-transform: capitalize;
+  font-size: 0.85rem;
 }
-
-.no-reservas {
-  text-align: center;
-  color: #666;
-  font-size: 16px;
-  margin-top: 20px;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+.estado-badge.approved { background-color: #28a745; color: white; }
+.estado-badge.pending { background-color: #ffc107; color: #333; }
+.estado-badge.rejected { background-color: #dc3545; color: white; }
 
 .pago-btn {
-  margin-top: 10px;
-  padding: 8px 15px;
-  background: #3b82f6;
+  background-color: #3b82f6;
   color: white;
-  font-weight: bold;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.3s;
+  border-radius: 0.5rem;
+  padding: 8px 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
 }
 .pago-btn:hover {
-  background: #1e5fc0;
+  background-color: #1e5fc0;
+  transform: translateY(-2px);
 }
 
-.estado {
-  font-weight: bold;
-  margin-top: 5px;
-}
-.estado.approved {
-  color: green;
-}
-.estado.pending {
-  color: orange;
-}
-.estado.rejected {
-  color: red;
-}
-.no-reservas {
-  text-align: center;
-  color: #666;
-  margin-top: 20px;
-}
-.reservas-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-.reserva-item {
-  border: 1px solid #ddd;
-  padding: 15px;
-  border-radius: 8px;
-}
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-.container {
-  max-width: 600px;
-  margin: 40px auto;
-  padding: 0 20px;
-}
 h2 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-h3 {
-  margin-bottom: 10px;
-}
-p {
-  margin: 5px 0;
-}.pago-btn {
-  margin-top: 10px;
-  padding: 8px 15px;
-  background: #3b82f6;
-  color: white;
+  color: #333;
   font-weight: bold;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-.pago-btn:hover {
-  background: #1e5fc0;
-}
-
-.estado {
-  font-weight: bold;
-  margin-top: 5px;
-}
-.estado.approved {
-  color: green;
-}
-.estado.pending {
-  color: orange;
-}
-.estado.rejected {
-  color: red;
-}
-.no-reservas {
-  text-align: center;
-  color: #666;
-  margin-top: 20px;
-}
-.reservas-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-.reserva-item {
-  border: 1px solid #ddd;
-  padding: 15px;
-  border-radius: 8px;
-}
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-.container {
-  max-width: 600px;
-  margin: 40px auto;
-  padding: 0 20px;
-}
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-h3 {
-  margin-bottom: 10px;
-}
-p {
-  margin: 5px 0;
+  margin-bottom: 30px;
 }
 </style>

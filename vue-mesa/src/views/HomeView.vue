@@ -1,42 +1,46 @@
 <template>
   <div class="home-wrapper min-vh-100 d-flex flex-column">
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-custom shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
       <div class="container-fluid px-4">
-        <h1 class="navbar-brand mb-0 h1 fw-bold">Tu mesa a un solo clic</h1>
-        
-        <div class="d-flex align-items-center gap-2">
-          <!-- Botón Perfil -->
-          <button 
-            class="btn btn-outline-light btn-sm rounded-pill d-flex align-items-center gap-2" 
-            @click="goProfile"
-          >
-            <i class="bi bi-person-circle"></i> 
-            <span class="d-none d-sm-inline">Mi Perfil</span>
-          </button>
+        <a class="navbar-brand fw-bold text-primary fs-4" href="#">
+          <i class="bi bi-geo-alt-fill me-2"></i>Tu Mesa a un solo click
+        </a>
 
-          <!-- Botón Cerrar sesión -->
-          <button 
-            @click="logout" 
-            class="btn btn-danger btn-sm rounded-pill"
-          >
-            <i class="bi bi-box-arrow-right d-sm-none"></i>
-            <span class="d-none d-sm-inline">Cerrar sesión</span>
-          </button>
+        <button 
+          class="navbar-toggler border-0" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#navbarNav"
+        >
+          <i class="bi bi-list fs-3 text-primary"></i>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+          <ul class="navbar-nav align-items-center gap-2">
+            <li class="nav-item">
+              <button class="btn btn-outline-primary btn-sm rounded-pill" @click="goProfile">
+                <i class="bi bi-person-circle me-1"></i> Perfil
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="btn btn-primary btn-sm rounded-pill" @click="logout">
+                <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+              </button>
+            </li>
+          </ul>
         </div>
       </div>
     </nav>
 
     <!-- Main Content -->
-    <main class="flex-grow-1 py-5 bg-light-custom">
-      <div class="container-fluid px-4">
-        <div class="row">
-          <div class="col-12 mb-4">
-            <h2 class="text-center fw-bold text-dark mb-4">Descubre nuestros restaurantes</h2>
-            <p class="text-center text-muted">Elige tu restaurante favorito y haz tu reserva en un solo clic</p>
-          </div>
+    <main class="flex-grow-1 py-5 mt-5 bg-light-custom">
+      <div class="container px-4 py-4">
+        <div class="text-center mb-5">
+          <h2 class="fw-bold text-dark mb-2">Descubre nuestros restaurantes</h2>
+          <p class="text-muted">Encuentra el lugar perfecto para disfrutar una experiencia gastronómica inolvidable</p>
         </div>
-        
+
         <div class="row g-4">
           <div 
             class="col-12 col-md-6 col-lg-4" 
@@ -44,58 +48,75 @@
             :key="rest.id"
           >
             <div class="card h-100 border-0 shadow-sm restaurant-card">
-              <div class="position-relative overflow-hidden">
+              <div class="position-relative overflow-hidden rounded-top-3">
                 <img 
                   :src="rest.imagen" 
                   alt="Restaurante" 
                   class="card-img-top restaurant-img"
                 />
-                <div class="card-img-overlay d-flex align-items-end p-0">
-                  <div class="bg-dark bg-opacity-50 text-white p-3 w-100">
-                    <h5 class="card-title mb-1 fw-bold">{{ rest.titulo }}</h5>
-                  </div>
+                <div class="card-overlay">
+                  <h5 class="card-title fw-bold text-white mb-0">{{ rest.titulo }}</h5>
                 </div>
               </div>
               
               <div class="card-body d-flex flex-column">
-                <p class="card-text text-muted flex-grow-1">{{ rest.descripcion }}</p>
-                
-                <div class="d-grid mt-3">
-                  <button 
-                    @click="irADetalle(rest.id)"
-                    class="btn btn-primary rounded-pill fw-semibold"
-                  >
-                    <i class="bi bi-eye me-2"></i>Ver más detalles
-                  </button>
-                </div>
+                <p class="text-muted flex-grow-1">{{ rest.descripcion }}</p>
+                <button 
+                  @click="irADetalle(rest.id)"
+                  class="btn btn-outline-primary rounded-pill fw-semibold mt-3"
+                >
+                  <i class="bi bi-eye me-2"></i>Ver más detalles
+                </button>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Estado vacío -->
-        <div v-if="restaurantes.length === 0" class="row">
-          <div class="col-12 text-center py-5">
-            <div class="empty-state">
-              <i class="bi bi-shop display-1 text-muted mb-3"></i>
-              <h3 class="text-muted">No hay restaurantes disponibles</h3>
-              <p class="text-muted">Vuelve pronto para ver nuestras opciones</p>
-            </div>
-          </div>
+        <div v-if="restaurantes.length === 0" class="text-center py-5">
+          <i class="bi bi-shop display-1 text-muted mb-3"></i>
+          <h4 class="text-muted">No hay restaurantes disponibles</h4>
+          <p class="text-muted">Vuelve pronto para ver nuestras opciones</p>
         </div>
       </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light text-center py-4">
-      <div class="container">
+    <footer class="footer bg-dark text-light pt-5 pb-4 mt-auto">
+      <div class="container text-center text-md-start">
         <div class="row">
-          <div class="col-12">
-            <p class="mb-2 fw-semibold">© 2025 | Tu Mesa A Un Solo Clic</p>
-            <p class="mb-0 small text-light-emphasis">
-              Desarrollado por <strong>Nicolas Chica</strong> | <strong>Juan Bastidas</strong> | <strong>Juan Cubides</strong>
+          <div class="col-md-4 mb-3">
+            <h5 class="fw-bold mb-3">Tu Mesa</h5>
+            <p class="small text-light-emphasis">
+              Reserva fácilmente en los mejores restaurantes de tu ciudad.
             </p>
           </div>
+
+          <div class="col-md-4 mb-3">
+            <h6 class="fw-bold mb-3">Enlaces útiles</h6>
+            <ul class="list-unstyled small">
+              <li><a href="#" class="footer-link">Contáctanos</a></li>
+              <li><a href="#" class="footer-link">Términos y condiciones</a></li>
+              <li><a href="#" class="footer-link">Política de privacidad</a></li>
+            </ul>
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <h6 class="fw-bold mb-3">Síguenos</h6>
+            <div class="d-flex justify-content-center justify-content-md-start gap-3">
+              <a href="#" class="footer-icon"><i class="bi bi-facebook"></i></a>
+              <a href="#" class="footer-icon"><i class="bi bi-instagram"></i></a>
+              <a href="#" class="footer-icon"><i class="bi bi-twitter-x"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-light opacity-25 my-4" />
+        <div class="text-center small">
+          © 2025 Tu Mesa | Desarrollado por 
+          <strong>Nicolas Chica</strong>, 
+          <strong>Juan Bastidas</strong> y 
+          <strong>Juan Cubides</strong>
         </div>
       </div>
     </footer>
@@ -117,11 +138,11 @@ const logout = () => {
     text: '¿Deseas cerrar tu sesión?',
     icon: 'question',
     showCancelButton: true,
-    confirmButtonColor: '#dc3545',
+    confirmButtonColor: '#0d6efd',
     cancelButtonColor: '#6c757d',
     confirmButtonText: 'Sí, cerrar sesión',
     cancelButtonText: 'Cancelar'
-  }).then((result) => {
+  }).then(result => {
     if (result.isConfirmed) {
       localStorage.clear()
       router.push('/login')
@@ -135,10 +156,10 @@ const goProfile = () => {
 
 const fetchRestaurantes = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/restaurantes') 
+    const response = await axios.get('http://localhost:3000/restaurantes')
     restaurantes.value = response.data
   } catch (error) {
-    console.error("Error al obtener los restaurantes:", error)
+    console.error('Error al obtener los restaurantes:', error)
     if (error.response?.status === 401 || error.response?.status === 403) {
       Swal.fire({
         icon: 'warning',
@@ -154,108 +175,81 @@ onMounted(() => {
   fetchRestaurantes()
 })
 
-const irADetalle = (id) => {
-  router.push({ name: "infoRest", params: { id } })
+const irADetalle = id => {
+  router.push({ name: 'infoRest', params: { id } })
 }
 </script>
 
 <style scoped>
-.bg-gradient-custom {
-  background: linear-gradient(135deg, #3b82f6, #228B22) !important;
+/* ======== NAVBAR ======== */
+.navbar {
+  backdrop-filter: blur(10px);
 }
 
+.navbar-brand {
+  letter-spacing: 0.5px;
+}
+
+/* ======== MAIN ======== */
 .bg-light-custom {
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef) !important;
+  background-color: #f8f9fa;
 }
 
 .restaurant-card {
   transition: all 0.3s ease;
-  cursor: pointer;
+  border-radius: 1rem;
 }
 
 .restaurant-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 .restaurant-img {
-  height: 250px;
+  height: 240px;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s ease;
 }
 
 .restaurant-card:hover .restaurant-img {
-  transform: scale(1.05);
+  transform: scale(1.03);
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #3b82f6, #1e40af);
-  border: none;
-  transition: all 0.3s ease;
+.card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  padding: 1rem;
 }
 
-.btn-primary:hover {
-  background: linear-gradient(135deg, #1e40af, #1e3a8a);
+/* ======== FOOTER ======== */
+.footer-link {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+  color: #fff;
+}
+
+.footer-icon {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.3rem;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.footer-icon:hover {
+  color: #0d6efd;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.btn-outline-light:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-1px);
-}
-
-.btn-danger {
-  transition: all 0.3s ease;
-}
-
-.btn-danger:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
-}
-
-.empty-state {
-  padding: 3rem 1rem;
-}
-
-/* Animación de entrada para las cards */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.restaurant-card {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.restaurant-card:nth-child(1) { animation-delay: 0.1s; }
-.restaurant-card:nth-child(2) { animation-delay: 0.2s; }
-.restaurant-card:nth-child(3) { animation-delay: 0.3s; }
-.restaurant-card:nth-child(4) { animation-delay: 0.4s; }
-.restaurant-card:nth-child(5) { animation-delay: 0.5s; }
-.restaurant-card:nth-child(6) { animation-delay: 0.6s; }
-
-/* Responsividad mejorada */
+/* ======== RESPONSIVE ======== */
 @media (max-width: 768px) {
   .restaurant-img {
     height: 200px;
-  }
-  
-  .card-img-overlay .bg-dark {
-    padding: 1rem !important;
-  }
-}
-
-@media (max-width: 576px) {
-  .restaurant-img {
-    height: 180px;
   }
 }
 </style>

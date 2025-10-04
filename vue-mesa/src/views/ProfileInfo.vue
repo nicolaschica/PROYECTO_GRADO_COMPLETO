@@ -1,4 +1,22 @@
 <template>
+  <div class="reservas-wrapper min-vh-100 d-flex flex-column">
+    <!-- Navbar (igual que Home) -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-primary fs-4" href="#">
+          <i class="bi bi-geo-alt-fill me-2"></i>Tu Mesa a un solo click
+        </a>
+
+        <button 
+          class="navbar-toggler border-0" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#navbarNav"
+        >
+          <i class="bi bi-list fs-3 text-primary"></i>
+        </button>
+      </div>
+    </nav>
   <div class="profile-container">
     <!-- Tarjeta de Perfil -->
     <div class="profile-card">
@@ -59,6 +77,8 @@
       </div>
     </div>
   </div>
+  </div>
+
 </template>
 
 <script setup>
@@ -85,6 +105,7 @@ const fetchUserInfo = async () => {
     router.push("/login");
   }
 };
+
 
 const updateUser = async () => {
   try {
